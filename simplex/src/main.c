@@ -50,7 +50,21 @@ int main(){
 	int numb_var=2;
 	int min_max=1; // min=0, max=1
 
-	iteration(base_matrix, numb_rest, numb_var,min_max);
+
+	while(verificaMatriz(base_matrix,numb_var)!=1){
+		iteration(base_matrix, numb_rest, numb_var,min_max);
+	}
+
+	int x,y;
+
+	for(y=0;y<TAB_Y;y++){
+		for(x=0;x<TAB_X;x++){
+			printf("%f%s",base_matrix[x][y]," ");
+		}
+		printf("\n");
+	}
+
+
 	return 0;
 
 }
@@ -125,26 +139,24 @@ void iteration(float base_matrix[TAB_X][TAB_Y], int numb_rest, int numb_var, int
 				for(x=0;x<TAB_X;x++){				//o multiplicador e aplicado na linha e somado a linha da matrix
 					cop_linha_pivo[x]=(float)cop_linha_pivo[x]*mid_pivo;
 					base_matrix[x][y]=(float)cop_linha_pivo[x]+base_matrix[x][y];
-					printf("%f%s",base_matrix[x][y]," ");
+					//printf("%f%s",base_matrix[x][y]," ");
 				}
-				printf("\n");
+				//printf("\n");
 			}
 		}
 };
 
-int verificaMatriz(float base_matrix[TAB_X][TAB_Y], int numb_var, int tab_y) {
+int verificaMatriz(float base_matrix[TAB_X][TAB_Y], int numb_var) {
 	int x = 1;
 	int y = 1;
 	for(x=1; x < 1+numb_var; x++) {
-		for(y=0; y < tab_y; y++) {
-			if(!base_matrix[x][y] == 0 || !base_matrix[x][y] == 1) {
+		for(y=0; y < TAB_Y; y++) {
+			if(!(base_matrix[x][y] == 0 || base_matrix[x][y] == 1)) {
 					return 0;
 				}
 		}
 	}
 
 	return 1;
-
-
 };
 
