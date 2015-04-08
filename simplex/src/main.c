@@ -1,19 +1,24 @@
-/*
- * main.c
- *
- *  Created on: Apr 7, 2015
- *      Author: nuts
- */
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 #define TAB_X 7
 #define TAB_Y 4
 
-//void iteration(float **base_matrix, int numb_rest, int numb_var, int min_max);
+#define MATRIX_TYPE float
+static MATRIX_TYPE **base_matrix;
 
-int main(){
-    int numb_rest=3;
-    float base_matrix[TAB_X][TAB_Y];
+static void iteration(int numb_rest, int numb_var, int min_max);
+
+int main()
+{
+    int numb_rest=3, x;
+
+	// malloc base matrix
+	base_matrix = (MATRIX_TYPE **) malloc(TAB_X * sizeof(MATRIX_TYPE *));
+	for (x = 0; x < TAB_X; x++) {
+		base_matrix[x] = (MATRIX_TYPE *) malloc(TAB_Y * sizeof(MATRIX_TYPE));
+	}
 
 	base_matrix[0][0]=1;
 	base_matrix[1][0]=-3;
@@ -50,12 +55,18 @@ int main(){
 	int numb_var=2;
 	int min_max=1; // min=0, max=1
 
-	iteration(base_matrix, numb_rest, numb_var,min_max);
-	return 0;
+	iteration(numb_rest, numb_var,min_max);
 
+	for (x = 0; x < TAB_X; x++) {
+		free(base_matrix[x]);
+	}
+	free(base_matrix);
+
+	return 0;
 }
 
-void iteration(float base_matrix[TAB_X][TAB_Y], int numb_rest, int numb_var, int min_max){
+static void iteration(int numb_rest, int numb_var, int min_max)
+{
 	int x;
 	int ref_x=0,ref_y=0;
 		for(x=1;x<=numb_var;x++){
