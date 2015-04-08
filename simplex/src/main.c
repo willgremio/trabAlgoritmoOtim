@@ -1,24 +1,19 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+/*
+ * main.c
+ *
+ *  Created on: Apr 7, 2015
+ *      Author: nuts
+ */
+
 
 #define TAB_X 7
 #define TAB_Y 4
 
-#define MATRIX_TYPE float
-static MATRIX_TYPE **base_matrix;
+//void iteration(float **base_matrix, int numb_rest, int numb_var, int min_max);
 
-static void iteration(int numb_rest, int numb_var, int min_max);
-
-int main()
-{
-    int numb_rest=3, x;
-
-	// malloc base matrix
-	base_matrix = (MATRIX_TYPE **) malloc(TAB_X * sizeof(MATRIX_TYPE *));
-	for (x = 0; x < TAB_X; x++) {
-		base_matrix[x] = (MATRIX_TYPE *) malloc(TAB_Y * sizeof(MATRIX_TYPE));
-	}
+int main(){
+    int numb_rest=3;
+    float base_matrix[TAB_X][TAB_Y];
 
 	base_matrix[0][0]=1;
 	base_matrix[1][0]=-3;
@@ -55,18 +50,12 @@ int main()
 	int numb_var=2;
 	int min_max=1; // min=0, max=1
 
-	iteration(numb_rest, numb_var,min_max);
-
-	for (x = 0; x < TAB_X; x++) {
-		free(base_matrix[x]);
-	}
-	free(base_matrix);
-
+	iteration(base_matrix, numb_rest, numb_var,min_max);
 	return 0;
+
 }
 
-static void iteration(int numb_rest, int numb_var, int min_max)
-{
+void iteration(float base_matrix[TAB_X][TAB_Y], int numb_rest, int numb_var, int min_max){
 	int x;
 	int ref_x=0,ref_y=0;
 		for(x=1;x<=numb_var;x++){
@@ -141,5 +130,21 @@ static void iteration(int numb_rest, int numb_var, int min_max)
 				printf("\n");
 			}
 		}
+};
+
+int verificaMatriz(float base_matrix[TAB_X][TAB_Y], int numb_var, int tab_y) {
+	int x = 1;
+	int y = 1;
+	for(x=1; x < 1+numb_var; x++) {
+		for(y=0; y < tab_y; y++) {
+			if(!base_matrix[x][y] == 0 || !base_matrix[x][y] == 1) {
+					return 0;
+				}
+		}
+	}
+
+	return 1;
+
+
 };
 
