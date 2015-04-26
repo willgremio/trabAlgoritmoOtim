@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "debug.h"
 
@@ -70,6 +71,52 @@ static void fmatrix_free (float **mtx, const uint32_t sz_x)
 	PF_DBG("EXIT");
 }
 
+typedef enum {
+	PROB_MIN = 0,
+	PROB_MAX
+} problem_t;
+
+typedef struct {
+	problem_t problem;
+	uint8_t nvars; // number of variables
+	uint8_t nrest; // number of restrictions
+
+	// matrix
+	uint8_t mtx_x_sz, mtx_y_sz;
+	float **mtx;
+} rcv_args_t;
+
+rcv_args_t rcv_args;
+
+static bool get_parameters (int argc, char **argv)
+{
+	uint8_t x, y, arg_idx;
+
+	PF_DBG("ENTER");
+	rcv_args.problem = atoi(argv[1]);
+	rcv_args.nvars = atoi(argv[2]);
+	rcv_args.nrest = atoi(argv[3]);
+	rcv_args.mtx_x_sz =	1 +					// Z
+						rcv_args.nvars +	// x1, x2, ..., xN
+						rcv_args.nrest +	// F1, F2, ..., FN
+						1;					// b
+
+	rcv_args.mtx_y_sz =	1 +					// Z row
+						rcv_args.nrest;		// restriction rows
+
+	// receive matrix
+	rcv_args.mtx = fmatrix_calloc(rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
+	for (y = 0, arg_idx = 4; y < rcv_args.mtx_y_sz; y++) {
+		for (x = 0; x < rcv_args.mtx_x_sz; x++, arg_idx++) {
+			rcv_args.mtx[x][y] = atof(argv[arg_idx]);
+			PF_DBG("rcv mtx[%u][%u] = %.2f", x, y, rcv_args.mtx[x][y]);
+		}
+	}
+
+	PF_DBG("EXIT");
+	return true;
+}
+
 int main (int argc, char **argv)
 {
     float base_matrix[TAB_X][TAB_Y], copy_matrix[TAB_X][TAB_Y];
@@ -80,6 +127,9 @@ int main (int argc, char **argv)
 	int x, y;
 
 	PF_DBG("ENTER");
+	get_parameters(argc, argv);
+
+/*#if 0*/
 	base_matrix[0][0]=copy_matrix[0][0]=1;
 	base_matrix[1][0]=copy_matrix[1][0]=-3;
 	base_matrix[2][0]=copy_matrix[2][0]=-5;
@@ -111,6 +161,7 @@ int main (int argc, char **argv)
 	base_matrix[4][3]=copy_matrix[4][3]=0;
 	base_matrix[5][3]=copy_matrix[5][3]=1;
 	base_matrix[6][3]=copy_matrix[6][3]=30;
+/*#endif*/
 
 	//strcpy(copy_matrix,base_matrix);		//copy_matrix=base_matrix;
 
@@ -146,6 +197,7 @@ int main (int argc, char **argv)
 		printf("\n");
 	}
 
+	fmatrix_free(rcv_args.mtx, rcv_args.mtx_x_sz);
 	fmatrix_free(dual, numb_rest + 1);
 	PF_DBG("EXIT");
 	return 0;
