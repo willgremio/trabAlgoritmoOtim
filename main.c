@@ -66,7 +66,7 @@ static void fmatrix_free (float **mtx, const uint32_t sz_x)
 	PF_DBG("EXIT");
 }
 
-int main()
+int main (int argc, char **argv)
 {
     float base_matrix[TAB_X][TAB_Y], copy_matrix[TAB_X][TAB_Y];
 	float **dual;
