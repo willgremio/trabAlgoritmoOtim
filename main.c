@@ -13,7 +13,11 @@ typedef struct {
 } parametros_t;
 
 typedef struct {
-	parametros_t parm1, parm2;
+	/*
+	 * parm1 e 2 são referentes aos valores originais de S
+	 * enquanto parm3 e 4 se referem aos valores originais da função L
+	 */
+	parametros_t parm1, parm2, parm3, parm4;
 } otimizacao_t;
 
 // ==========
@@ -70,9 +74,10 @@ int main (int argc, char **argv)
 {
     float base_matrix[TAB_X][TAB_Y], copy_matrix[TAB_X][TAB_Y];
 	float **dual;
-    int numb_rest = 3, x, y;
+    int numb_rest = 3;
 	int numb_var = 2;
 	int min_max = 1; // min=0, max=1
+	int x, y;
 
 	PF_DBG("ENTER");
 	base_matrix[0][0]=copy_matrix[0][0]=1;
@@ -117,26 +122,26 @@ int main (int argc, char **argv)
 
 	dual = dualidade(copy_matrix,numb_var,numb_rest);
 
-	/*for(y=0;y<TAB_Y;y++){
+	/*
+	for(y=0;y<TAB_Y;y++){
 			for(x=0;x<TAB_X;x++){
 				printf("%f%s",base_matrix[x][y]," ");
 			}
 			printf("\n");
 		}
 	printf("\n\n");
-*/
-	for(y=0;y<TAB_Y;y++){
-		for(x=0;x<TAB_X;x++){
+	*/
+	for (y = 0; y < TAB_Y; y++) {
+		for (x = 0; x < TAB_X; x++) {
 			printf("%02.2f\t", copy_matrix[x][y]);
 		}
 		printf("\n");
 	}
-	PF_DBG("pass1");
-	for(y=0;y<TAB_Y;y++){
-		PF_DBG("pass2");
-		for(x=0;x<TAB_X;x++){
-			PF_DBG("pass3");
-			printf("%02.2f\t", dual[x][y]);
+	for (y = 0; y < TAB_Y; y++) {
+		for (x = 0; x < TAB_X; x++) {
+			/*PF_DBG("dump here");*/
+			/*printf("%02.2f\t", dual[x][y]);*/
+			printf("%02.2f\t", dual[y][x]);
 		}
 		printf("\n");
 	}
@@ -147,44 +152,40 @@ int main (int argc, char **argv)
 }
 
 static void iteration (	float base_matrix[TAB_X][TAB_Y],
-						int numb_rest,
-						int numb_var,
-						int min_max)
+						const int numb_rest,
+						const int numb_var,
+						const int min_max)
 {
-	int x;
-	int ref_x=0,ref_y=0;
+	int x, y, cont = 0;
+	int ref_x = 0, ref_y = 0;
+	float vet_men[numb_rest - 1][numb_rest - 1];
 
 	PF_DBG("ENTER");
 	for (x = 1; x <= numb_var; x++) {
-		int base =0;		//var que serve para buscar o min ou o max
-		int y;
+		int base = 0; //var que serve para buscar o min ou o max
 
-		for(y=0;y<numb_rest;y++){
-			if(min_max==1&&base_matrix[x][y]<base){ //max
-				base=base_matrix[x][y];
-				ref_x=x;
-				ref_y=y;
-			}else if(min_max==0&&base_matrix[x][y]>base){  //min
+		for (y = 0; y < numb_rest; y++){
+			if (min_max == 1 && base_matrix[x][y] < base) { //max
 				base = base_matrix[x][y];
-				ref_x=x;
-				ref_y=y;
+				ref_x = x;
+				ref_y = y;
+			} else if (min_max == 0 && base_matrix[x][y] > base) { //min
+				base = base_matrix[x][y];
+				ref_x = x;
+				ref_y = y;
 			}
 		}
 	}
 
-
-	float vet_men[numb_rest-1][numb_rest-1];
-	int y, cont =0;
-	for(y=0;y<=numb_rest;y++){
-		if(!y==ref_y){  //não testa a linha com menor ou maior valor
-			vet_men[cont][0]=(float)base_matrix[TAB_X-1][y]/base_matrix[ref_x][y];		//divisao do valor para avaliacao
-			vet_men[cont][1]=y;					// aloca a posicao do valor na matrix
+	for (y = 0; y <= numb_rest; y++) {
+		if (!y == ref_y) { //não testa a linha com menor ou maior valor
+			vet_men[cont][0] = (float) base_matrix[TAB_X-1][y] / base_matrix[ref_x][y]; //divisao do valor para avaliacao
+			vet_men[cont][1] = y; // aloca a posicao do valor na matrix
 			cont++;
 		}
 	}
 
-	float menor_pivo =vet_men[0][0];			//seta o primeiro valor do vetor para iniciar os testes
-
+	float menor_pivo = vet_men[0][0];			//seta o primeiro valor do vetor para iniciar os testes
 	int y_pivo = vet_men[0][1];					// e a posicao do valor tambem
 
 	for(x=1;x<numb_rest-1;x++){
@@ -235,6 +236,9 @@ static bool verificaMatriz(float base_matrix[TAB_X][TAB_Y], int numb_var)
 	int x, y;
 
 	PF_DBG("ENTER");
+	/*
+	 * Testa se os valores de X... encontram-se binarios indicando o fim das iterações
+	 */
 	for (x = 1; x < (1 + numb_var); x++) {
 		for (y = 0; y < TAB_Y; y++) {
 			if (!(base_matrix[x][y] == 0 || base_matrix[x][y] == 1)) {
@@ -257,6 +261,12 @@ static otimizacao_t sensibilidade(	float base_matrix[TAB_X][TAB_Y],
 
 	PF_DBG("ENTER");
 	if(numb_var==2){		//somente 2 variaveis
+		float reference_matrix[2][2], b_matrix[2][2], original_b_matrix[2][2];
+		int marcador_b[2];
+
+		//
+		//procura o pivo para as duas variaveis, ou seja, onde a variavel se mostra 1 e por consequencia o S será o valor correto para a solução ideal
+		//
 		for(y=0;y<TAB_Y;y++){
 			if(base_matrix[1][y]==1){
 				pivoy_x1=y;
@@ -270,9 +280,13 @@ static otimizacao_t sensibilidade(	float base_matrix[TAB_X][TAB_Y],
 			}
 		}
 
-		float reference_matrix[2][2], b_matrix[2][2];
-		int marcador_b[2];
-		if(pivoy_x1<pivoy_x2){
+		/*
+					reference_matrix = recebe os campos F1 e F2 calculados anteriormente
+					b_matrix = recebe os resultados de cada variavel, caso não seja o resultado para a determinada coluna recebe 0
+					marcador_b = vetor que marca quais posições da b_matrix são 0 para facilitar a busca subsequente, também ajuda caso algum resultado de 0 por coincidencia
+		*/
+
+		if (pivoy_x1 < pivoy_x2) {
 			for( y=0;y<2;y++){
 				reference_matrix[y][0]=base_matrix[3+y][pivoy_x1];
 				reference_matrix[y][1]=base_matrix[3+y][pivoy_x2];
@@ -283,10 +297,17 @@ static otimizacao_t sensibilidade(	float base_matrix[TAB_X][TAB_Y],
 			b_matrix[1][0]=copy_matrix[TAB_X-1][pivoy_x2];
 			b_matrix[1][1]=0;
 
+			original_b_matrix[0][0]=0;
+			original_b_matrix[0][1]=copy_matrix[1][0];
+			original_b_matrix[1][0]=copy_matrix[2][0];
+			original_b_matrix[1][1]=0;
+
+			printf("\n L: %f %f\n",copy_matrix[1][0], copy_matrix[2][0]);
+
 			marcador_b[0]=0;
 			marcador_b[1]=1;
 
-		}else if(pivoy_x1>pivoy_x2){
+		} else if (pivoy_x1 > pivoy_x2) {
 			for( y=0;y<2;y++){
 					reference_matrix[y][0]=base_matrix[3+y][pivoy_x2];
 					reference_matrix[y][1]=base_matrix[3+y][pivoy_x1];
@@ -296,43 +317,60 @@ static otimizacao_t sensibilidade(	float base_matrix[TAB_X][TAB_Y],
 			b_matrix[1][0]=0;
 			b_matrix[1][1]=copy_matrix[TAB_X-1][pivoy_x1];
 
+			original_b_matrix[0][0]=copy_matrix[1][0];
+			original_b_matrix[0][1]=0;
+			original_b_matrix[1][0]=0;
+			original_b_matrix[1][1]=copy_matrix[2][0];
+
+			printf("\n L: %f %f\n",copy_matrix[1][0], copy_matrix[2][0]);
+
 			marcador_b[0]=1;
 			marcador_b[1]=0;
-		}else{
+		} else {
 			printf("\n ERROR");
 		}
 		int x;
-		parametros_t par1,par2;
-		for(x=0;x<2;x++){
-
+		parametros_t par1, par2, par3, par4;
+		for (x = 0; x < 2; x++) {
+			/*
+			 * Atribuição dos valores <= e >= a partir das marcações feitas anteriormente
+			 */
 			if(marcador_b[x]==0){
 				if(x==0){
 					par1.menor_igual=(float)(reference_matrix[1][0]*b_matrix[x][1]*-1)/(reference_matrix[0][0]);
 					par1.maior_igual=(float)(reference_matrix[1][1]*b_matrix[x][1]*-1)/(reference_matrix[0][1]);
 
+					par3.menor_igual=(float)(reference_matrix[1][0]*original_b_matrix[x][1]*-1)/(reference_matrix[0][0]);
+					par3.maior_igual=(float)(reference_matrix[1][1]*original_b_matrix[x][1]*-1)/(reference_matrix[0][1]);
 				}else{
-					par2.menor_igual=(float)(reference_matrix[1][0]*b_matrix[x][1]*-1)/(reference_matrix[0][0]);
-					par2.maior_igual=(float)(reference_matrix[1][1]*b_matrix[x][1]*-1)/(reference_matrix[0][1]);
-					//printf("%f%s%f%s%f",reference_matrix[0][1]," ",reference_matrix[1][1]," ",b_matrix[x][1]);
+					//par 2 são invertidos se comparados ao par1
+					par2.maior_igual=(float)(reference_matrix[1][0]*b_matrix[x][1]*-1)/(reference_matrix[0][0]);
+					par2.menor_igual=(float)(reference_matrix[1][1]*b_matrix[x][1]*-1)/(reference_matrix[0][1]);
 
+					par4.maior_igual=(float)(reference_matrix[1][0]*original_b_matrix[x][1]*-1)/(reference_matrix[0][0]);
+					par4.menor_igual=(float)(reference_matrix[1][1]*original_b_matrix[x][1]*-1)/(reference_matrix[0][1]);
 				}
 			}else{
 				if(x==0){
 					par1.menor_igual=(float)(reference_matrix[0][0]*b_matrix[x][0]*-1)/(reference_matrix[1][0]);
 					par1.maior_igual=(float)(reference_matrix[0][1]*b_matrix[x][0]*-1)/(reference_matrix[1][1]);
 
+					par3.menor_igual=(float)(reference_matrix[0][0]*original_b_matrix[x][0]*-1)/(reference_matrix[1][0]);
+					par3.maior_igual=(float)(reference_matrix[0][1]*original_b_matrix[x][0]*-1)/(reference_matrix[1][1]);
 				}else{
+					par2.maior_igual=(float)(reference_matrix[0][0]*b_matrix[x][0]*-1)/(reference_matrix[1][0]);
+					par2.menor_igual=(float)(reference_matrix[0][1]*b_matrix[x][0]*-1)/(reference_matrix[1][1]);
 
-
-					par2.menor_igual=(float)(reference_matrix[0][0]*b_matrix[x][0]*-1)/(reference_matrix[1][0]);
-					par2.maior_igual=(float)(reference_matrix[0][1]*b_matrix[x][0]*-1)/(reference_matrix[1][1]);
-
+					par4.maior_igual=(float)(reference_matrix[0][0]*original_b_matrix[x][0]*-1)/(reference_matrix[1][0]);
+					par4.menor_igual=(float)(reference_matrix[0][1]*original_b_matrix[x][0]*-1)/(reference_matrix[1][1]);
 				}
 			}
 		}
 
 		ot.parm1=par1;
 		ot.parm2=par2;
+		ot.parm3=par3;
+		ot.parm4=par4;
 
 
 		/*for(y=0;y<2;y++){
@@ -385,12 +423,14 @@ static float **dualidade(float copy_matrix[TAB_X][TAB_Y], int numb_var, int numb
 		y++;
 	}
 
+	/*
 	for(y=0;y<numb_var+1;y++){
 		for(x=0;x<numb_rest+1;x++){
 			printf("%02.2f\t",dual[x][y]);
 		}
 		printf("\n");
 	}
+	*/
 
 	PF_DBG("EXIT");
 	return dual;

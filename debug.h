@@ -10,7 +10,7 @@
 	PF("[ERROR] func: %s, line: %u, msg: "str"\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 // debug messages level
-#define TRACE_DBG_GLOBAL
+//#define TRACE_DBG_GLOBAL
 #if defined(TRACE_DBG_LOCAL) || defined(TRACE_DBG_GLOBAL)
 #define PF_DBG(str, ...) \
 	PF("[DEBUG] func: %s, msg: "str"\n", __FUNCTION__, ##__VA_ARGS__)
