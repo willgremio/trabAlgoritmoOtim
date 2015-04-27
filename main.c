@@ -127,17 +127,9 @@ static void iteration (float **base_matrix)
 	pivot_col = 1;
 	for (x = 2; x < rcv_args.nvars + 1; x++) {
 		abs_cmp = base_matrix[x][0] >= 0 ? base_matrix[x][0] : (base_matrix[x][0] * -1);
-		if (rcv_args.problem == PROB_MAX) {
-			if (abs_cmp < abs) {
-				abs = abs_cmp;
-				pivot_col = x;
-			}
-		}
-		else {
-			if (abs_cmp > abs) {
-				abs = abs_cmp;
-				pivot_col = x;
-			}
+		if (abs_cmp > abs) {
+			abs = abs_cmp;
+			pivot_col = x;
 		}
 	}
 
