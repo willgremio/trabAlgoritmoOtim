@@ -216,13 +216,8 @@ static bool matrix_verify (float **base_matrix)
 	x_end = rcv_args.nvars + x_start;
 	// verify matrix
 	for (x = x_start; x < x_end; x++) {
-		for (y = 0; y < rcv_args.mtx_y_sz; y++) {
-			if (rcv_args.problem == PROB_MAX) {
-				if (base_matrix[x][y] < 0) {
-					return false;
-				}
-			}
-			else if (base_matrix[x][y] > 0) {
+		for (y = 1; y < rcv_args.mtx_y_sz + 1; y++) {
+			if (!(base_matrix[x][y] == 1 || base_matrix[x][y] == 0)) {
 				return false;
 			}
 		}
