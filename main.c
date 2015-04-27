@@ -112,33 +112,54 @@ int main (int argc, char **argv)
 static void iteration (float **base_matrix)
 {
 	int x, y, cont = 0;
-	int ref_x = 0, ref_y = 0;
+	int pivot_col = 0;
 	float **vet_men = fmatrix_calloc(rcv_args.nrest, 2);
 
-	PF_DBG("ENTER");
-	for (x = 1; x < rcv_args.nvars + 1; x++) {
-		int base = 0; // var que serve para buscar o min ou o max
+	/*float *divider = (float *) malloc(rcv_args.nrest * sizeof(float));*/
+	/*float *result = (float *) malloc(rcv_args.nrest * sizeof(float));*/
 
-		for (y = 0; y < rcv_args.nrest; y++){
-			if (rcv_args.problem == PROB_MAX && base_matrix[x][y] < base) { //max
-				base = base_matrix[x][y];
-				ref_x = x;
-				ref_y = y;
-			} else if (rcv_args.problem == PROB_MIN && base_matrix[x][y] > base) { //min
-				base = base_matrix[x][y];
-				ref_x = x;
-				ref_y = y;
+	float abs, abs_cmp;
+	/*uint8_t pivot_row;*/
+
+	PF_DBG("ENTER");
+	// passo 1
+	abs = base_matrix[1][0] >= 0 ? base_matrix[1][0] : (base_matrix[1][0] * -1);
+	pivot_col = 1;
+	for (x = 2; x < rcv_args.nvars + 1; x++) {
+		abs_cmp = base_matrix[x][0] >= 0 ? base_matrix[x][0] : (base_matrix[x][0] * -1);
+		if (rcv_args.problem == PROB_MAX) {
+			if (abs_cmp < abs) {
+				abs = abs_cmp;
+				pivot_col = x;
+			}
+		}
+		else {
+			if (abs_cmp > abs) {
+				abs = abs_cmp;
+				pivot_col = x;
 			}
 		}
 	}
 
+	// passo 2
 	for (y = 1; y < rcv_args.nrest + 1; y++) {
-		if (!(y == ref_y)) { // não testa a linha com menor ou maior valor
-			vet_men[cont][0] = (float) base_matrix[rcv_args.mtx_x_sz - 1][y] / base_matrix[ref_x][y]; // divisao do valor para avaliacao
-			vet_men[cont][1] = y; // aloca a posicao do valor na matrix
-			cont++;
-		}
+		vet_men[cont][0] = (float) base_matrix[rcv_args.mtx_x_sz - 1][y] / base_matrix[pivot_col][y]; // divisao do valor para avaliacao
+		vet_men[cont][1] = y; // aloca a posicao do valor na matrix
+		cont++;
 	}
+	/*for (y = 1; y < rcv_args.nrest + 1; y++) {*/
+		/*vet_men[cont][0] = (float) base_matrix[rcv_args.mtx_x_sz - 1][y] / base_matrix[pivot_col][y]; // divisao do valor para avaliacao*/
+		/*vet_men[cont][1] = y; // aloca a posicao do valor na matrix*/
+		/*cont++;*/
+		/*result[y - 1] = base_matrix[pivot_col][y] / base_matrix[pivot_col][y];*/
+	/*}*/
+	/*aux = result[0];*/
+	/*pivot_row = 0;*/
+	/*for (x = 0; x < rcv_args.nrest + 1; x++) {*/
+		/*if (aux = result[x]) {*/
+		/*}*/
+		/*pivot_row = */
+	/*}*/
 
 	float menor_pivo = vet_men[0][0];			//seta o primeiro valor do vetor para iniciar os testes
 	int y_pivo = vet_men[0][1];					// e a posicao do valor tambem
@@ -152,7 +173,7 @@ static void iteration (float **base_matrix)
 
 	//linha pivo ja foi encontrada
 
-	float element_pivo = base_matrix[ref_x][y_pivo];
+	float element_pivo = base_matrix[pivot_col][y_pivo];
 	float linha_pivo[rcv_args.mtx_x_sz] ;
 
 	for (x = 0; x < rcv_args.mtx_x_sz; x++) { //XGH copia o vetor
@@ -168,7 +189,7 @@ static void iteration (float **base_matrix)
 
 	for (y = 0; y < rcv_args.mtx_y_sz; y++) {
 		if (y != y_pivo) {						//aplica o pivo nas demais linhas
-			float mid_pivo = base_matrix[ref_x][y]*(-1);		//inverso do valor que e o pivo da multiplicacao
+			float mid_pivo = base_matrix[pivot_col][y]*(-1);		//inverso do valor que e o pivo da multiplicacao
 
 			float cop_linha_pivo[rcv_args.mtx_x_sz];
 			for (x = 0; x < rcv_args.mtx_x_sz; x++) { //XGH  copia a linha pivo original
@@ -417,7 +438,6 @@ static void fmatrix_free (float **mtx, const size_t sz_x)
 
 	PF_DBG("ENTER");
 	for (x = 0; x < sz_x; x++) {
-		PF_DBG("x = %u", x);
 		free(mtx[x]);
 	}
 	free(mtx);
