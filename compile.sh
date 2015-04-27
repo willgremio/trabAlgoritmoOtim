@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc -Ofast -Wall main.c
+gcc -g -Ofast -Wall main.c

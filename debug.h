@@ -21,7 +21,7 @@
 /* information messages level */
 #define TRACE_INF_GLOBAL
 #ifdef TRACE_INF_GLOBAL
-#define PF_INF(str, ...) PF(str"\n", ##__VA_ARGS__)
+#define PF_INF(str, ...) PF("[INFO] "str"\n", ##__VA_ARGS__)
 #else
 #define PF_INF(str, ...)
 #endif
