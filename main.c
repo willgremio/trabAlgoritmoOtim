@@ -35,7 +35,7 @@ typedef struct {
 	 * parm1 e 2 são referentes aos valores originais de S
 	 * enquanto parm3 e 4 se referem aos valores originais da função L
 	 */
-	parametros_t parm1, parm2, parm3, parm4;
+	parametros_t *parm1, *parm2, *parm3, *parm4;
 } otimizacao_t;
 
 
@@ -330,24 +330,24 @@ static void sensibilidade (	float **base_matrix,
 			}
 		}
 
-		ot.parm1=par1; // b1
-		ot.parm2=par2; // b2
-		ot.parm3=par3; // C1
-		ot.parm4=par4; // C2
+		ot.parm1=&par1; // b1
+		ot.parm2=&par2; // b2
+		ot.parm3=&par3; // C1
+		ot.parm4=&par4; // C2
 
 		PF("\nSensitivity analysis:\n");
 		PF("\tb1\n");
-		PF("\t\tmajor: %f\n", ot.parm1.maior_igual);
-		PF("\t\tminor: %f\n", ot.parm1.menor_igual);
+		PF("\t\tmajor: %f\n", ot.parm1->maior_igual);
+		PF("\t\tminor: %f\n", ot.parm1->menor_igual);
 		PF("\tb2\n");
-		PF("\t\tmajor: %f\n", ot.parm2.maior_igual);
-		PF("\t\tminor: %f\n", ot.parm2.menor_igual);
+		PF("\t\tmajor: %f\n", ot.parm2->maior_igual);
+		PF("\t\tminor: %f\n", ot.parm2->menor_igual);
 		PF("\tC1\n");
-		PF("\t\tmajor: %f\n", ot.parm3.maior_igual);
-		PF("\t\tminor: %f\n", ot.parm3.menor_igual);
+		PF("\t\tmajor: %f\n", ot.parm3->maior_igual);
+		PF("\t\tminor: %f\n", ot.parm3->menor_igual);
 		PF("\tC2\n");
-		PF("\t\tmajor: %f\n", ot.parm4.maior_igual);
-		PF("\t\tminor: %f\n", ot.parm4.menor_igual);
+		PF("\t\tmajor: %f\n", ot.parm4->maior_igual);
+		PF("\t\tminor: %f\n", ot.parm4->menor_igual);
 	}
 	PF_DBG("EXIT");
 }
