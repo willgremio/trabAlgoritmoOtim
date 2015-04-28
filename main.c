@@ -24,8 +24,6 @@ typedef struct {
 	float **mtx;
 } rcv_args_t;
 
-static rcv_args_t rcv_args;
-
 typedef struct {
 	float menor_igual, maior_igual;
 } parametros_t;
@@ -61,26 +59,36 @@ static void sensibilidade (	float **base_matrix,
 							const uint8_t sz_x,
 							const uint8_t sz_y);
 
-static float **dualidade(float **copy_matrix);
+static float **dualidade (	float **copy_matrix,
+							const uint8_t nvars,
+							const uint8_t nrest,
+							const uint8_t sz_x,
+							const uint8_t sz_y);
 
 // dynamic matrix management
 static float **fmatrix_calloc (const uint32_t sz_x, const uint32_t sz_y);
 static void fmatrix_free (float **mtx, const size_t sz_x);
 
-static bool get_parameters (int argc, char **argv);
+static bool get_parameters (rcv_args_t *rcv_args, int argc, char **argv);
 
 static void print_matrix (float **mtx, const size_t xlen, const size_t ylen);
 
 int main (int argc, char **argv)
 {
     float **base_matrix, **copy_matrix, **dual;
+	rcv_args_t rcv_args;
+	int x;
 
 	PF_DBG("ENTER");
-	get_parameters(argc, argv);
+	get_parameters(&rcv_args, argc, argv);
 
 	base_matrix = rcv_args.mtx;
 	copy_matrix = fmatrix_calloc(rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
-	memcpy(copy_matrix, base_matrix, rcv_args.mtx_x_sz * rcv_args.mtx_y_sz);
+
+	// copy matrix
+	for (x = 0; x < rcv_args.mtx_x_sz; x++) {
+		memcpy(&copy_matrix[x], &base_matrix[x], rcv_args.mtx_y_sz);
+	}
 
 	PF("Initial table:\n");
 	print_matrix(base_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
@@ -103,16 +111,15 @@ int main (int argc, char **argv)
 
 	sensibilidade(base_matrix, copy_matrix, rcv_args.nvars, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 
-	dual = dualidade(copy_matrix);
-
+	dual = dualidade(	copy_matrix,
+						rcv_args.nvars,
+						rcv_args.nrest,
+						rcv_args.mtx_x_sz,
+						rcv_args.mtx_y_sz);
+	PF("\nCopy matrix:\n");
+	print_matrix(copy_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 	PF("\nDual:\n");
-	print_matrix(copy_matrix, rcv_args.mtx_y_sz, rcv_args.mtx_x_sz);
-	/*for (y = 0; y < rcv_args.mtx_y_sz; y++) {*/
-		/*for (x = 0; x < rcv_args.mtx_x_sz; x++) {*/
-			/*printf("%08.2f\t", dual[y][x]);*/
-		/*}*/
-		/*printf("\n");*/
-	/*}*/
+	print_matrix(dual, rcv_args.nrest + 1, rcv_args.nvars + 1);
 
 	fmatrix_free(rcv_args.mtx, rcv_args.mtx_x_sz);
 	fmatrix_free(copy_matrix, rcv_args.mtx_x_sz);
@@ -352,39 +359,34 @@ static void sensibilidade (	float **base_matrix,
 	PF_DBG("EXIT");
 }
 
-static float **dualidade(float **copy_matrix)
+static float **dualidade (	float **copy_matrix,
+							const uint8_t nvars,
+							const uint8_t nrest,
+							const uint8_t sz_x,
+							const uint8_t sz_y)
 {
 	int x, y;
 	float **dual;
 
 	PF_DBG("ENTER");
-	dual = fmatrix_calloc(rcv_args.nrest + 1, rcv_args.nvars + 1);
+	dual = fmatrix_calloc(nrest + 1, nvars + 1);
 
-	for (y = 1; y < rcv_args.mtx_y_sz; y++) {
-		for (x = 1; x < 1 + rcv_args.nvars; x++) {
-			dual[y-1][x] =copy_matrix[x][y];
+	for (y = 1; y < sz_y; y++) {
+		for (x = 1; x < 1 + nvars; x++) {
+			dual[y-1][x] = copy_matrix[x][y];
 		}
 	}
 	y = 1;
-	for(x = 0; x < rcv_args.nrest; x++) {
-		dual[x][0] = copy_matrix[rcv_args.mtx_x_sz - 1][y];
+	for(x = 0; x < nrest; x++) {
+		dual[x][0] = copy_matrix[sz_x - 1][y];
 		y++;
 	}
-	dual[rcv_args.nrest][0] = 0;		//zera o ultimo coeficiente q fica fora do loop
+	dual[nrest][0] = 0;		//zera o ultimo coeficiente q fica fora do loop
 	y = 1;
-	for (x = 1; x < 1 + rcv_args.nvars; x++) {
-		dual[rcv_args.nrest][y] = copy_matrix[y][0];
+	for (x = 1; x < 1 + nvars; x++) {
+		dual[nrest][y] = copy_matrix[y][0];
 		y++;
 	}
-
-	/*
-	for(y=0;y<rcv_args.nvars+1;y++){
-		for(x=0;x<rcv_args.nrest+1;x++){
-			printf("%02.2f\t",dual[x][y]);
-		}
-		printf("\n");
-	}
-	*/
 
 	PF_DBG("EXIT");
 	return dual;
@@ -421,31 +423,31 @@ static void fmatrix_free (float **mtx, const size_t sz_x)
 	PF_DBG("EXIT");
 }
 
-static bool get_parameters (int argc, char **argv)
+static bool get_parameters (rcv_args_t *rcv_args, int argc, char **argv)
 {
 	uint8_t x, y, arg_idx;
 
 	PF_DBG("ENTER");
-	rcv_args.problem = atoi(argv[1]);
-	PF_DBG("rcv problem = %u", rcv_args.problem);
-	rcv_args.nvars = atoi(argv[2]);
-	PF_DBG("rcv nvars = %u", rcv_args.nvars);
-	rcv_args.nrest = atoi(argv[3]);
-	PF_DBG("rcv nrest = %u", rcv_args.nrest);
-	rcv_args.mtx_x_sz =	1 +					// Z column
-						rcv_args.nvars +	// x1, x2, ..., xN
-						rcv_args.nrest +	// F1, F2, ..., FN
-						1;					// b
+	rcv_args->problem = atoi(argv[1]);
+	PF_DBG("rcv problem = %u", rcv_args->problem);
+	rcv_args->nvars = atoi(argv[2]);
+	PF_DBG("rcv nvars = %u", rcv_args->nvars);
+	rcv_args->nrest = atoi(argv[3]);
+	PF_DBG("rcv nrest = %u", rcv_args->nrest);
+	rcv_args->mtx_x_sz =	1 +					// Z column
+							rcv_args->nvars +	// x1, x2, ..., xN
+							rcv_args->nrest +	// F1, F2, ..., FN
+							1;					// b
 
-	rcv_args.mtx_y_sz =	1 +					// Z row
-						rcv_args.nrest;		// restriction rows
+	rcv_args->mtx_y_sz =	1 +					// Z row
+							rcv_args->nrest;	// restriction rows
 
 	// receive matrix
-	rcv_args.mtx = fmatrix_calloc(rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
-	for (y = 0, arg_idx = 4; y < rcv_args.mtx_y_sz; y++) {
-		for (x = 0; x < rcv_args.mtx_x_sz; x++, arg_idx++) {
-			rcv_args.mtx[x][y] = atof(argv[arg_idx]);
-			PF_DBG("rcv mtx[%u][%u] = %.2f", x, y, rcv_args.mtx[x][y]);
+	rcv_args->mtx = fmatrix_calloc(rcv_args->mtx_x_sz, rcv_args->mtx_y_sz);
+	for (y = 0, arg_idx = 4; y < rcv_args->mtx_y_sz; y++) {
+		for (x = 0; x < rcv_args->mtx_x_sz; x++, arg_idx++) {
+			rcv_args->mtx[x][y] = atof(argv[arg_idx]);
+			PF_DBG("rcv mtx[%u][%u] = %.2f", x, y, rcv_args->mtx[x][y]);
 		}
 	}
 
