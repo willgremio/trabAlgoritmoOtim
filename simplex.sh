@@ -29,17 +29,23 @@ declare -A mtx
 
 # trabalho
 problem_type="min"	# (string) 	choose between "min" or "max"
-variable_cnt=2		# (number)	number of variables
-restiction_cnt=5	# (number)	number of restrictions
+variable_cnt=5		# (number)	number of variables
+restiction_cnt=2	# (number)	number of restrictions
 matrix_x_size=9		# (number)	matrix x axis length
-matrix_y_size=6		# (number)	matrix y axis length
-#Z			x1				x2				F1			F2			F3			F4			F5			b
-mtx[0,0]=1;	mtx[1,0]=-1;	mtx[2,0]=-1;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;	mtx[7,0]=0;	mtx[8,0]=0;
-mtx[0,1]=0;	mtx[1,1]=-0.6;	mtx[2,1]=0.4;	mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=0;	mtx[7,1]=0;	mtx[8,1]=0;
-mtx[0,2]=0;	mtx[1,2]=0.2;	mtx[2,2]=0.1;	mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=0;	mtx[7,2]=0;	mtx[8,2]=14;
-mtx[0,3]=0;	mtx[1,3]=0.25;	mtx[2,3]=0.6;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=0;	mtx[7,3]=0;	mtx[8,3]=30;
-mtx[0,4]=0;	mtx[1,4]=0.1;	mtx[2,4]=0.15;	mtx[3,4]=0;	mtx[4,4]=0;	mtx[5,4]=0;	mtx[6,4]=1;	mtx[7,4]=0;	mtx[8,4]=10;
-mtx[0,5]=0;	mtx[1,5]=0.15;	mtx[2,5]=0.1;	mtx[3,5]=0;	mtx[4,5]=0;	mtx[5,5]=0;	mtx[6,5]=0;	mtx[7,5]=1;	mtx[8,5]=8;
+matrix_y_size=3		# (number)	matrix y axis length
+#Z				x1				x2				F1			F2			F3			F4			F5			b
+#mtx[0,0]=1;	mtx[1,0]=-1;	mtx[2,0]=-1;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;	mtx[7,0]=0;	mtx[8,0]=0;
+#mtx[0,1]=0;	mtx[1,1]=-0.6;	mtx[2,1]=0.4;	mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=0;	mtx[7,1]=0;	mtx[8,1]=0;
+#mtx[0,2]=0;	mtx[1,2]=0.2;	mtx[2,2]=0.1;	mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=0;	mtx[7,2]=0;	mtx[8,2]=14;
+#mtx[0,3]=0;	mtx[1,3]=0.25;	mtx[2,3]=0.6;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=0;	mtx[7,3]=0;	mtx[8,3]=30;
+#mtx[0,4]=0;	mtx[1,4]=0.1;	mtx[2,4]=0.15;	mtx[3,4]=0;	mtx[4,4]=0;	mtx[5,4]=0;	mtx[6,4]=1;	mtx[7,4]=0;	mtx[8,4]=10;
+#mtx[0,5]=0;	mtx[1,5]=0.15;	mtx[2,5]=0.1;	mtx[3,5]=0;	mtx[4,5]=0;	mtx[5,5]=0;	mtx[6,5]=0;	mtx[7,5]=1;	mtx[8,5]=8;
+
+# Dual
+#Z			x1				x2				x3				x4				x5				F1			F2			b
+mtx[0,0]=1;	mtx[1,0]=0;		mtx[2,0]=14;	mtx[3,0]=30;	mtx[4,0]=10;	mtx[5,0]=8;		mtx[6,0]=0;	mtx[7,0]=0;	mtx[8,0]=0;
+mtx[0,1]=0;	mtx[1,1]=0.4;	mtx[2,1]=0.1;	mtx[3,1]=0.6;	mtx[4,1]=0.15;	mtx[5,1]=0.1;	mtx[6,1]=1;	mtx[7,1]=0;	mtx[8,1]=-1;
+mtx[0,2]=0;	mtx[1,2]=-0.6;	mtx[2,2]=0.2;	mtx[3,2]=0.25;	mtx[4,2]=0.1;	mtx[5,2]=0.15;	mtx[6,2]=0;	mtx[7,2]=1;	mtx[8,2]=-1;
 
 # set max or min
 param1=0
