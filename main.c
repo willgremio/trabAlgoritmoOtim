@@ -47,11 +47,19 @@ typedef struct {
 // for MAX all variables should be >= 0 to pass
 // for MIN all variables should be <= 0 to pass
 // otherwise another iteration shall be needed
-static bool matrix_verify (float **base_matrix);
+static bool matrix_verify (float **base_matrix, const uint8_t nvars, const uint8_t sz_y);
 
-static void iteration (float **base_matrix);
+static void iteration (	float **base_matrix,
+						const uint8_t nvars,
+						const uint8_t nrest,
+						const uint8_t sz_x,
+						const uint8_t sz_y);
 
-static otimizacao_t sensibilidade(float **base_matrix, float **copy_matrix);
+static void sensibilidade (	float **base_matrix,
+							float **copy_matrix,
+							const uint8_t nvars,
+							const uint8_t sz_x,
+							const uint8_t sz_y);
 
 static float **dualidade(float **copy_matrix);
 
@@ -78,22 +86,26 @@ int main (int argc, char **argv)
 	print_matrix(base_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 
 	// do simplex!
-	while (!matrix_verify(base_matrix)) {
+	while (!matrix_verify(base_matrix, rcv_args.nvars, rcv_args.mtx_y_sz)) {
 		static uint32_t iter_cnt = 1;
 
 		PF("Iteration %u\n", iter_cnt);
-		iteration(base_matrix);
+		iteration(	base_matrix,
+					rcv_args.nvars,
+					rcv_args.nrest,
+					rcv_args.mtx_x_sz,
+					rcv_args.mtx_y_sz);
 		iter_cnt++;
 
 		// print new table
 		print_matrix(base_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 	}
 
-	sensibilidade(base_matrix, copy_matrix);
+	sensibilidade(base_matrix, copy_matrix, rcv_args.nvars, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 
 	dual = dualidade(copy_matrix);
 
-	PF("\nDual initial table:\n");
+	PF("\nDual:\n");
 	print_matrix(copy_matrix, rcv_args.mtx_y_sz, rcv_args.mtx_x_sz);
 	/*for (y = 0; y < rcv_args.mtx_y_sz; y++) {*/
 		/*for (x = 0; x < rcv_args.mtx_x_sz; x++) {*/
@@ -109,23 +121,23 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-static void iteration (float **base_matrix)
+static void iteration (	float **base_matrix,
+						const uint8_t nvars,
+						const uint8_t nrest,
+						const uint8_t sz_x,
+						const uint8_t sz_y)
 {
 	int x, y, cont = 0;
 	int pivot_col = 0;
-	float **vet_men = fmatrix_calloc(rcv_args.nrest, 2);
-
-	/*float *divider = (float *) malloc(rcv_args.nrest * sizeof(float));*/
-	/*float *result = (float *) malloc(rcv_args.nrest * sizeof(float));*/
-
+	float **vet_men = fmatrix_calloc(nrest, 2);
 	float abs, abs_cmp;
-	/*uint8_t pivot_row;*/
 
 	PF_DBG("ENTER");
+
 	// passo 1
 	abs = base_matrix[1][0] >= 0 ? base_matrix[1][0] : (base_matrix[1][0] * -1);
 	pivot_col = 1;
-	for (x = 2; x < rcv_args.nvars + 1; x++) {
+	for (x = 2; x < nvars + 1; x++) {
 		abs_cmp = base_matrix[x][0] >= 0 ? base_matrix[x][0] : (base_matrix[x][0] * -1);
 		if (abs_cmp > abs) {
 			abs = abs_cmp;
@@ -134,29 +146,16 @@ static void iteration (float **base_matrix)
 	}
 
 	// passo 2
-	for (y = 1; y < rcv_args.nrest + 1; y++) {
-		vet_men[cont][0] = (float) base_matrix[rcv_args.mtx_x_sz - 1][y] / base_matrix[pivot_col][y]; // divisao do valor para avaliacao
+	for (y = 1; y < nrest + 1; y++) {
+		vet_men[cont][0] = (float) base_matrix[sz_x - 1][y] / base_matrix[pivot_col][y]; // divisao do valor para avaliacao
 		vet_men[cont][1] = y; // aloca a posicao do valor na matrix
 		cont++;
 	}
-	/*for (y = 1; y < rcv_args.nrest + 1; y++) {*/
-		/*vet_men[cont][0] = (float) base_matrix[rcv_args.mtx_x_sz - 1][y] / base_matrix[pivot_col][y]; // divisao do valor para avaliacao*/
-		/*vet_men[cont][1] = y; // aloca a posicao do valor na matrix*/
-		/*cont++;*/
-		/*result[y - 1] = base_matrix[pivot_col][y] / base_matrix[pivot_col][y];*/
-	/*}*/
-	/*aux = result[0];*/
-	/*pivot_row = 0;*/
-	/*for (x = 0; x < rcv_args.nrest + 1; x++) {*/
-		/*if (aux = result[x]) {*/
-		/*}*/
-		/*pivot_row = */
-	/*}*/
 
 	float menor_pivo = vet_men[0][0];			//seta o primeiro valor do vetor para iniciar os testes
 	int y_pivo = vet_men[0][1];					// e a posicao do valor tambem
 
-	for (x = 1; x < rcv_args.nrest - 1; x++) {
+	for (x = 1; x < nrest - 1; x++) {
 		if (vet_men[x][0] >= 0 && menor_pivo > vet_men[x][0]) {		//testa se e maior que 0 e se e se e o menor
 			menor_pivo = vet_men[x][0];
 			y_pivo = vet_men[x][1];
@@ -166,49 +165,49 @@ static void iteration (float **base_matrix)
 	//linha pivo ja foi encontrada
 
 	float element_pivo = base_matrix[pivot_col][y_pivo];
-	float linha_pivo[rcv_args.mtx_x_sz] ;
+	float linha_pivo[sz_x] ;
 
-	for (x = 0; x < rcv_args.mtx_x_sz; x++) { //XGH copia o vetor
+	for (x = 0; x < sz_x; x++) { //XGH copia o vetor
 		linha_pivo[x] = base_matrix[x][y_pivo];
 	}
 
-	for (x = 0; x < rcv_args.mtx_x_sz; x++) { //realiza a divizao da linha pivo pelo elemento pivo e guarda o resultado na linha da matrix
+	for (x = 0; x < sz_x; x++) { //realiza a divizao da linha pivo pelo elemento pivo e guarda o resultado na linha da matrix
 		linha_pivo[x] = (float) linha_pivo[x] / element_pivo;
 		base_matrix[x][y_pivo] = (float) linha_pivo[x];
 	}
 
 	//linha pivo ja encontrada
 
-	for (y = 0; y < rcv_args.mtx_y_sz; y++) {
+	for (y = 0; y < sz_y; y++) {
 		if (y != y_pivo) {						//aplica o pivo nas demais linhas
 			float mid_pivo = base_matrix[pivot_col][y]*(-1);		//inverso do valor que e o pivo da multiplicacao
 
-			float cop_linha_pivo[rcv_args.mtx_x_sz];
-			for (x = 0; x < rcv_args.mtx_x_sz; x++) { //XGH  copia a linha pivo original
+			float cop_linha_pivo[sz_x];
+			for (x = 0; x < sz_x; x++) { //XGH  copia a linha pivo original
 				cop_linha_pivo[x]=linha_pivo[x];
 			}
 
-			for (x = 0; x < rcv_args.mtx_x_sz; x++) {				//o multiplicador e aplicado na linha e somado a linha da matrix
+			for (x = 0; x < sz_x; x++) {				//o multiplicador e aplicado na linha e somado a linha da matrix
 				cop_linha_pivo[x] = (float) cop_linha_pivo[x] * mid_pivo;
 				base_matrix[x][y] = (float) cop_linha_pivo[x] + base_matrix[x][y];
 			}
 		}
 	}
 
-	fmatrix_free(vet_men, rcv_args.nrest - 1);
+	fmatrix_free(vet_men, nrest - 1);
 	PF_DBG("EXIT");
 };
 
-static bool matrix_verify (float **base_matrix)
+static bool matrix_verify (float **base_matrix, const uint8_t nvars, const uint8_t sz_y)
 {
 	int x, y, x_start, x_end;
 
 	PF_DBG("ENTER");
 	x_start = 1;
-	x_end = rcv_args.nvars + x_start;
+	x_end = nvars + x_start;
 	// verify matrix
 	for (x = x_start; x < x_end; x++) {
-		for (y = 1; y < rcv_args.mtx_y_sz + 1; y++) {
+		for (y = 1; y < sz_y + 1; y++) {
 			if (!(base_matrix[x][y] == 1 || base_matrix[x][y] == 0)) {
 				return false;
 			}
@@ -220,24 +219,28 @@ static bool matrix_verify (float **base_matrix)
 
 
 
-static otimizacao_t sensibilidade(float **base_matrix, float **copy_matrix)
+static void sensibilidade (	float **base_matrix,
+							float **copy_matrix,
+							const uint8_t nvars,
+							const uint8_t sz_x,
+							const uint8_t sz_y)
 {
 	int pivoy_x1 = 0, pivoy_x2 = 0, y;
 	otimizacao_t ot;
 
 	PF_DBG("ENTER");
-	if (rcv_args.nvars == 2) { //somente 2 variaveis
-		float reference_matrix[2][2], b_matrix[2][2], original_b_matrix[2][2];
+	if (nvars == 2) { //somente 2 variaveis
+		float reference_matrix[2][2] = {{0,0},{0,0}}, b_matrix[2][2] = {{0,0},{0,0}}, original_b_matrix[2][2] = {{0,0},{0,0}};
 		int marcador_b[2];
 
 		//procura o pivo para as duas variaveis, ou seja, onde a variavel se mostra 1 e por consequencia o S será o valor correto para a solução ideal
-		for (y = 0; y < rcv_args.mtx_y_sz; y++) {
+		for (y = 0; y < sz_y; y++) {
 			if(base_matrix[1][y]==1){
 				pivoy_x1=y;
 				break;
 			}
 		}
-		for (y = 0; y < rcv_args.mtx_y_sz; y++) {
+		for (y = 0; y < sz_y; y++) {
 			if(base_matrix[2][y]==1){
 				pivoy_x2=y;
 				break;
@@ -257,16 +260,14 @@ static otimizacao_t sensibilidade(float **base_matrix, float **copy_matrix)
 			}
 
 			b_matrix[0][0]=0;
-			b_matrix[0][1]=copy_matrix[rcv_args.mtx_x_sz - 1][pivoy_x1];
-			b_matrix[1][0]=copy_matrix[rcv_args.mtx_x_sz - 1][pivoy_x2];
+			b_matrix[0][1]=copy_matrix[sz_x - 1][pivoy_x1];
+			b_matrix[1][0]=copy_matrix[sz_x - 1][pivoy_x2];
 			b_matrix[1][1]=0;
 
 			original_b_matrix[0][0]=0;
 			original_b_matrix[0][1]=copy_matrix[1][0];
 			original_b_matrix[1][0]=copy_matrix[2][0];
 			original_b_matrix[1][1]=0;
-
-			printf("\n L: %f %f\n",copy_matrix[1][0], copy_matrix[2][0]);
 
 			marcador_b[0]=0;
 			marcador_b[1]=1;
@@ -276,17 +277,15 @@ static otimizacao_t sensibilidade(float **base_matrix, float **copy_matrix)
 					reference_matrix[y][0]=base_matrix[3+y][pivoy_x2];
 					reference_matrix[y][1]=base_matrix[3+y][pivoy_x1];
 				}
-			b_matrix[0][0]=copy_matrix[rcv_args.mtx_x_sz - 1][pivoy_x2];
+			b_matrix[0][0]=copy_matrix[sz_x - 1][pivoy_x2];
 			b_matrix[0][1]=0;
 			b_matrix[1][0]=0;
-			b_matrix[1][1]=copy_matrix[rcv_args.mtx_x_sz - 1][pivoy_x1];
+			b_matrix[1][1]=copy_matrix[sz_x - 1][pivoy_x1];
 
 			original_b_matrix[0][0]=copy_matrix[1][0];
 			original_b_matrix[0][1]=0;
 			original_b_matrix[1][0]=0;
 			original_b_matrix[1][1]=copy_matrix[2][0];
-
-			printf("\n L: %f %f\n",copy_matrix[1][0], copy_matrix[2][0]);
 
 			marcador_b[0]=1;
 			marcador_b[1]=0;
@@ -331,35 +330,26 @@ static otimizacao_t sensibilidade(float **base_matrix, float **copy_matrix)
 			}
 		}
 
-		ot.parm1=par1;
-		ot.parm2=par2;
-		ot.parm3=par3;
-		ot.parm4=par4;
+		ot.parm1=par1; // b1
+		ot.parm2=par2; // b2
+		ot.parm3=par3; // C1
+		ot.parm4=par4; // C2
 
-
-		/*for(y=0;y<2;y++){
-			for(x=0;x<2;x++){
-				printf("%f%s",b_matrix[x][y]," ");
-			}
-			printf("\n");
-		}
-		printf("\n\n");
-		for(y=0;y<2;y++){
-			for(x=0;x<2;x++){
-				printf("%f%s",reference_matrix[x][y]," ");
-			}
-			printf("\n");
-		}
-		printf("\n\n\n");*/
-
-		/*printf("%s%f%s%f","menor igual: ",ot.parm1.menor_igual, "  maior igual: ",ot.parm1.maior_igual);
-		printf("\n");
-		printf("%s%f%s%f","menor igual: ",ot.parm2.menor_igual, "  maior igual: ",ot.parm2.maior_igual);*/
+		PF("\nSensitivity analysis:\n");
+		PF("\tb1\n");
+		PF("\t\tmajor: %f\n", ot.parm1.maior_igual);
+		PF("\t\tminor: %f\n", ot.parm1.menor_igual);
+		PF("\tb2\n");
+		PF("\t\tmajor: %f\n", ot.parm2.maior_igual);
+		PF("\t\tminor: %f\n", ot.parm2.menor_igual);
+		PF("\tC1\n");
+		PF("\t\tmajor: %f\n", ot.parm3.maior_igual);
+		PF("\t\tminor: %f\n", ot.parm3.menor_igual);
+		PF("\tC2\n");
+		PF("\t\tmajor: %f\n", ot.parm4.maior_igual);
+		PF("\t\tminor: %f\n", ot.parm4.menor_igual);
 	}
-
-
 	PF_DBG("EXIT");
-	return ot;
 }
 
 static float **dualidade(float **copy_matrix)

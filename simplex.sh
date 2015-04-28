@@ -4,16 +4,16 @@
 declare -A mtx
 
 # exemplo MAX aula
-#problem_type="max"	# (string) 	choose between "min" or "max"
-#variable_cnt=2		# (number)	number of variables
-#restiction_cnt=3	# (number)	number of restrictions
-#matrix_x_size=7		# (number)	matrix x axis length
-#matrix_y_size=4		# (number)	matrix y axis length
+problem_type="max"	# (string) 	choose between "min" or "max"
+variable_cnt=2		# (number)	number of variables
+restiction_cnt=3	# (number)	number of restrictions
+matrix_x_size=7		# (number)	matrix x axis length
+matrix_y_size=4		# (number)	matrix y axis length
 # Z			x1				x2				F1			F2			F3			b
-#mtx[0,0]=1;	mtx[1,0]=-3;	mtx[2,0]=-5;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;
-#mtx[0,1]=0;	mtx[1,1]=2;		mtx[2,1]=4;		mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=10;
-#mtx[0,2]=0;	mtx[1,2]=6;		mtx[2,2]=1;		mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=20;
-#mtx[0,3]=0;	mtx[1,3]=1;		mtx[2,3]=-1;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=30;
+mtx[0,0]=1;	mtx[1,0]=-3;	mtx[2,0]=-5;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;
+mtx[0,1]=0;	mtx[1,1]=2;		mtx[2,1]=4;		mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=10;
+mtx[0,2]=0;	mtx[1,2]=6;		mtx[2,2]=1;		mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=20;
+mtx[0,3]=0;	mtx[1,3]=1;		mtx[2,3]=-1;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=30;
 
 # exemplo MIN aula
 #problem_type="min"	# (string) 	choose between "min" or "max"
@@ -28,18 +28,18 @@ declare -A mtx
 #mtx[0,3]=0;	mtx[1,3]=5;		mtx[2,3]=10;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=60;
 
 # trabalho
-problem_type="min"	# (string) 	choose between "min" or "max"
-variable_cnt=2		# (number)	number of variables
-restiction_cnt=5	# (number)	number of restrictions
-matrix_x_size=9		# (number)	matrix x axis length
-matrix_y_size=6		# (number)	matrix y axis length
+#problem_type="min"	# (string) 	choose between "min" or "max"
+#variable_cnt=2		# (number)	number of variables
+#restiction_cnt=5	# (number)	number of restrictions
+#matrix_x_size=9		# (number)	matrix x axis length
+#matrix_y_size=6		# (number)	matrix y axis length
 #Z			x1				x2				F1			F2			F3			F4			F5			b
-mtx[0,0]=1;	mtx[1,0]=-1;	mtx[2,0]=-1;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;	mtx[7,0]=0;	mtx[8,0]=0;
-mtx[0,1]=0;	mtx[1,1]=5;		mtx[2,1]=10;	mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=0;	mtx[7,1]=0;	mtx[8,1]=14000;
-mtx[0,2]=0;	mtx[1,2]=4;		mtx[2,2]=1.67;	mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=0;	mtx[7,2]=0;	mtx[8,2]=30000;
-mtx[0,3]=0;	mtx[1,3]=10;	mtx[2,3]=6.67;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=0;	mtx[7,3]=0;	mtx[8,3]=10000;
-mtx[0,4]=0;	mtx[1,4]=6.67;	mtx[2,4]=10;	mtx[3,4]=0;	mtx[4,4]=0;	mtx[5,4]=0;	mtx[6,4]=1;	mtx[7,4]=0;	mtx[8,4]=8000;
-mtx[0,5]=0;	mtx[1,5]=1;		mtx[2,5]=0;		mtx[3,5]=0;	mtx[4,5]=0;	mtx[5,5]=0;	mtx[6,5]=0;	mtx[7,5]=1;	mtx[8,5]=48000;
+#mtx[0,0]=1;	mtx[1,0]=-1;	mtx[2,0]=-1;	mtx[3,0]=0;	mtx[4,0]=0;	mtx[5,0]=0;	mtx[6,0]=0;	mtx[7,0]=0;	mtx[8,0]=0;
+#mtx[0,1]=0;	mtx[1,1]=5;		mtx[2,1]=10;	mtx[3,1]=1;	mtx[4,1]=0;	mtx[5,1]=0;	mtx[6,1]=0;	mtx[7,1]=0;	mtx[8,1]=14000;
+#mtx[0,2]=0;	mtx[1,2]=4;		mtx[2,2]=1.67;	mtx[3,2]=0;	mtx[4,2]=1;	mtx[5,2]=0;	mtx[6,2]=0;	mtx[7,2]=0;	mtx[8,2]=30000;
+#mtx[0,3]=0;	mtx[1,3]=10;	mtx[2,3]=6.67;	mtx[3,3]=0;	mtx[4,3]=0;	mtx[5,3]=1;	mtx[6,3]=0;	mtx[7,3]=0;	mtx[8,3]=10000;
+#mtx[0,4]=0;	mtx[1,4]=6.67;	mtx[2,4]=10;	mtx[3,4]=0;	mtx[4,4]=0;	mtx[5,4]=0;	mtx[6,4]=1;	mtx[7,4]=0;	mtx[8,4]=8000;
+#mtx[0,5]=0;	mtx[1,5]=1;		mtx[2,5]=0;		mtx[3,5]=0;	mtx[4,5]=0;	mtx[5,5]=0;	mtx[6,5]=0;	mtx[7,5]=1;	mtx[8,5]=48000;
 
 # set max or min
 param1=0
