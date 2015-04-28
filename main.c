@@ -73,11 +73,21 @@ static bool get_parameters (rcv_args_t *rcv_args, int argc, char **argv);
 
 static void print_matrix (float **mtx, const size_t xlen, const size_t ylen);
 
+static void fmtx_cpy (float **dst, float **src, const size_t xlen, const size_t ylen)
+{
+	size_t x, y;
+
+	for (x = 0; x < xlen; x++) {
+		for (y = 0; y < ylen; y++) {
+			dst[x][y] = src[x][y];
+		}
+	}
+}
+
 int main (int argc, char **argv)
 {
     float **base_matrix, **copy_matrix, **dual;
 	rcv_args_t rcv_args;
-	int x;
 
 	PF_DBG("ENTER");
 	get_parameters(&rcv_args, argc, argv);
@@ -86,9 +96,7 @@ int main (int argc, char **argv)
 	copy_matrix = fmatrix_calloc(rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 
 	// copy matrix
-	for (x = 0; x < rcv_args.mtx_x_sz; x++) {
-		memcpy(&copy_matrix[x], &base_matrix[x], rcv_args.mtx_y_sz);
-	}
+	fmtx_cpy(copy_matrix, base_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 
 	PF("Initial table:\n");
 	print_matrix(base_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
@@ -116,8 +124,6 @@ int main (int argc, char **argv)
 						rcv_args.nrest,
 						rcv_args.mtx_x_sz,
 						rcv_args.mtx_y_sz);
-	PF("\nCopy matrix:\n");
-	print_matrix(copy_matrix, rcv_args.mtx_x_sz, rcv_args.mtx_y_sz);
 	PF("\nDual:\n");
 	print_matrix(dual, rcv_args.nrest + 1, rcv_args.nvars + 1);
 
